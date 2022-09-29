@@ -1,49 +1,54 @@
-from tkinter import *
-from tkinter import Text, messagebox
+from tkinter import END, Button, Entry, Frame, Label, Text, Tk, messagebox
 import Authentication
 from Email import Email
 
 class Email_GUI:
-    def __init__(self, master, email:Email):
+    def __init__(self, master, email:Email, rec_email='', text='', main='', isDraft = False):
         
         self.email = email
 
         self.frame = Frame(master)
         master.title('PyMail - email client')
         master.minsize(width = 400, height = 400)
-        master.config(bg = 'cyan')
-        self.title = Label(master, text = 'PyMail', font = ("Century Gothic", 40), fg = 'black', bg = 'cyan')
+        master.config(bg = 'orange')
+        self.title = Label(master, text = 'PyMail', font = ("Century Gothic", 40), fg = 'snow', bg = 'orange')
         self.title.pack()
 
         text1 = 'This is a simple python application that is used to \nsend emails with ease.'
-        self.detail = Label(master, text = text1, font = ("Century Gothic", 15), fg = 'black', bg = 'cyan')
+        self.detail = Label(master, text = text1, font = ("Century Gothic", 15), fg = 'snow', bg = 'orange')
         self.detail.pack()
 
-        self.connected = Label(master, text = f'\nConnected to: {self.email._username}\n({self.email.cl})\n', font = ("Century Gothic", 13), fg = 'red', bg = 'cyan')
+        self.connected = Label(master, text = f'\nConnected to: {self.email._username}\n({self.email.cl})\n', font = ("Century Gothic", 13), fg = 'indigo', bg = 'orange')
         self.connected.pack()
-        self.rec_title = Label(master, text = '\nReceiver Email Address', font = ("Century Gothic", 18), bg = 'cyan')
+        self.rec_title = Label(master, text = '\nReceiver Email Address', font = ("Century Gothic", 18), bg = 'orange')
         self.rec_title.pack()
 
-        self.notice = Label(master, text = 'Separate email addresses with a comma.', font = ("Century Gothic", 10), bg = 'cyan')
+        self.notice = Label(master, text = 'Separate email addresses with a comma.', font = ("Century Gothic", 10), bg = 'orange')
         self.notice.pack()
 
         self.rec_email = Entry(master, width = 40)
+        self.rec_email.insert(0, rec_email)
         self.rec_email.pack()
 
-        self.sub_title = Label(master, text = '\nSubject', font = ("Century Gothic", 18), bg = 'cyan')
+        self.sub_title = Label(master, text = '\nSubject', font = ("Century Gothic", 18), bg = 'orange')
         self.sub_title.pack()
 
         self.text = Entry(master,width = 40)
+        self.text.insert(0, text)
         self.text.pack()
 
-        self.text_title = Label(master, text = '\nMessage', font = ("Century Gothic", 18), bg = 'cyan')
+        self.text_title = Label(master, text = '\nMessage', font = ("Century Gothic", 18), bg = 'orange')
         self.text_title.pack()
 
         self.main = Text(master, width = 50, height = 5)
+        self.main.insert('0.0', main)
         self.main.config(borderwidth=3)
         self.main.pack(ipady =3)
 
         self.send = Button(master, text = 'Send Email', command=self.send_email)
+        self.send.pack()
+
+        self.send = Button(master, text = 'Save Draft', command=self.save_draft)
         self.send.pack()
 
         self.logout = Button(master, text = 'Logout', command=self.logout)
@@ -52,7 +57,7 @@ class Email_GUI:
         self.master = master
 
     def send_email(self):
-        ''' --- SENDS EMAIL --- '''
+        '''--- SENDS EMAIL ---'''
         rec = self.rec_email.get()
 
         lst = rec.split() # list of email strings
@@ -74,8 +79,22 @@ class Email_GUI:
                         break
                 if success == True:
                     messagebox.showinfo('Email Sent!', f'Congratulations! Successfully Sent Email!\n\nSubject: {subj}\n\nRecipient(s): {rec}')
+                    # now delete the draft (if this email was a draft)
+                    self.email.deleteDraft(to=address, subject=subj, message=mes)
         else:
             messagebox.showerror('Invalid reciever(s) format!')
+
+    def save_draft(self):
+        '''--- Saves current email as draft ---'''
+        rec = self.rec_email.get()
+        subj = self.text.get()
+        mes = self.main.get(0.0, END)
+
+        success = self.email.saveAsDraft(to = rec, subject=subj, message=mes)
+        if success == True:
+            messagebox.showinfo('Saved', 'Saved as Draft !')
+        if success == False:
+            messagebox.showinfo('Error', 'Error while saving the draft!')
 
 
     def logout(self):
